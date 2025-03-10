@@ -1,0 +1,35 @@
+name: sdct
+base: core24
+version: '0.1'
+summary: Explore snapd control interface
+description: |
+  Demo snapd control snap
+
+grade: stable
+confinement: strict
+
+parts:
+  src:
+    plugin: go
+    source: .
+    build-snaps:
+      - go
+
+  script:
+    plugin: dump
+    source: demo-snapd-control
+    source-type: file
+    stage-packages:
+      - jq
+      - curl
+
+apps:
+  sdct:
+    command: bin/sdct
+    plugs:
+      - snapd-control
+
+  demo-snapd-control:
+    command: demo-snapd-control
+    plugs:
+      - snapd-control

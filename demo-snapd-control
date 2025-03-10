@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo -e "\nGetting the context: $SNAP_CONTEXT"
+
+if [ -z "${SNAP_SAVE_DATA}" ]; then
+  echo "Ubuntu Classic detected"
+else
+  echo "Ubuntu Core detected"
+fi
+
+curl --unix-socket /run/snapd-snap.socket \
+  -X POST http://localhost/v2/snapctl \
+  -H "Content-Type: application/json" \
+  -d "{\"context-id\":\"$SNAP_CONTEXT\",\"args\":[\"set\", \"system\", \"system.kernel.dangerous-cmdline-append=\”opt1=val1 opt2=val2\”\"]}"
