@@ -35,15 +35,16 @@ func main() {
 		},
 	}
 
+	// not sure if this actually is being effective on passing the SNAP_CONTEXT
 	cli.RunSnapctl(&client.SnapCtlOptions{
 		ContextID: cookie,
 		Args:      nil,
 	}, nil)
 
+	// NOTE: This currently gives me the "access denied" error
 	out, err := cli.SetConf("system", patchValues)
 	if err != nil {
-		fmt.Println("err: ",
-			err)
+		fmt.Println("err: ", err)
 	}
 	fmt.Println("out: ", out)
 }
