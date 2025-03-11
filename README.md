@@ -2,12 +2,18 @@
 
 ## Using Curl
 
-First build this snap, install it then run the command as root user:
+Follow the steps:
+-  Build this snap;
+-  install it then 
+- Connect [snapd-control interface](https://snapcraft.io/docs/snapd-control-interface)
+-  run the command as root user:
 ```bash
 
 snapcraft -v
 
 sudo snap install *.snap --dangerous
+
+sudo snap connect sdct:snapd-control
 
 sudo sdct.curl -sS --unix-socket /run/snapd.socket http://localhost/v2/snaps/system/conf -X PUT -d '{"system": { "kernel": { "dangerous-cmdline-append": "buz=bazz foo=bar" } } }'
 
