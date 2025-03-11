@@ -23,7 +23,20 @@ parts:
       - jq
       - curl
 
+  curl:
+    plugin: dump
+    source: curl
+    source-type: file
+    stage-packages:
+      - jq
+      - curl
+
 apps:
+  curl:
+    command: curl
+    plugs:
+      - snapd-control
+
   sdct:
     command: bin/sdct
     plugs:
