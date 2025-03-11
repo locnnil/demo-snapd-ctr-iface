@@ -1,45 +1,53 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"fmt"
-	"os"
-
-	"github.com/snapcore/snapd/client"
-	"github.com/snapcore/snapd/dirs"
+	"net"
+	"net/http"
+	"net/http/httputil"
 )
 
-var clientConfig = client.Config{
-	DisableAuth: true,
-	Socket:      dirs.SnapSocket,
-}
-
 func main() {
-	cli := client.New(&clientConfig)
-	cookie := os.Getenv("SNAP_CONTEXT")
+	confEndpoint := "http://localhost/v2/snaps/system/conf"
 
-	fmt.Println("cookie: ", cookie)
-	fmt.Println("cli: ", cli)
+	body :=
+		`{"system": { "kernel": { "dangerous-cmdline-append": "buz=bazz foo=bar" } } }`
 
-	patchValues := make(map[string]interface{})
+	payload := bytes.NewBufferString(body)
 
-	patchValues = map[string]interface{}{
-		"system": map[string]interface{}{
-			"kernel": map[string]interface{}{
-				"dangerous-cmdline-append": "foo=bar",
+	client := http.Client{
+		Transport: &http.Transport{
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+				return net.Dial("unix", "/run/snapd.socket")
 			},
 		},
 	}
 
-	// not sure if this actually is being effective on passing the SNAP_CONTEXT
-	cli.RunSnapctl(&client.SnapCtlOptions{
-		ContextID: cookie,
-		Args:      nil,
-	}, nil)
-
-	// NOTE: This currently gives me the "access denied" error
-	out, err := cli.SetConf("system", patchValues)
+	req, err := http.NewRequest("PUT", confEndpoint, payload)
 	if err != nil {
-		fmt.Println("err: ", err)
+		fmt.Println("Error creating request:", err)
+		return
 	}
-	fmt.Println("out: ", out)
+
+	// Set request headers
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error making request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Dump the response
+	dump, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		fmt.Println("Error dumping response:", err)
+		return
+	}
+	fmt.Printf("HTTP RESPONSE:\n%v", string(dump))
+
 }
